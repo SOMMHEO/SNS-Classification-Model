@@ -5,4 +5,8 @@ tests/fine_tuning_data.csv
 tests/recent_media_data.csv
 tests/recent_user_data.csv
 config/
-# finetune-bert-kor/checkpoint-5982/
+finetune-bert-kor/
+finetune-BM-K/
+finetune-KR-Medium/
+distilbert-base-multilingual-cased/
+kcELECTRA-base-v2022/
