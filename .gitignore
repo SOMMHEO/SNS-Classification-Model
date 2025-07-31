@@ -1,6 +1,6 @@
 tests/1st_labelig_data.csv
 tests/2nd_labeling_data.csv
-tests/3rd_labeling_data.csv
+# tests/3rd_labeling_data.csv
 tests/fine_tuning_data.csv
 tests/recent_media_data.csv
 tests/recent_user_data.csv
@@ -10,3 +10,5 @@ finetune-BM-K/
 finetune-KR-Medium/
 distilbert-base-multilingual-cased/
 kcELECTRA-base-v2022/
+skt-kobert-base-v1/
+finetune-monologg/
