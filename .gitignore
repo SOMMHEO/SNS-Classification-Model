@@ -5,6 +5,10 @@ tests/data/1st_labelig_data.csv
 tests/data/2nd_labeling_data.csv
 tests/data/fine_tuning_data_original.csv
 
+new.xlsx
+new_2.xlsx
+new_3_ensemble_result.xlsx
+
 config/
 finetune-bert-kor/
 finetune-BM-K/
