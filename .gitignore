@@ -8,6 +8,7 @@ tests/data/fine_tuning_data_original.csv
 new.xlsx
 new_2.xlsx
 new_3_ensemble_result.xlsx
+new_multi-columns.xlsx
 
 config/
 finetune-bert-kor/
@@ -17,3 +18,4 @@ distilbert-base-multilingual-cased/
 kcELECTRA-base-v2022/
 skt-kobert-base-v1/
 finetune-monologg/
+muli-columns-kykim-bert-kor
