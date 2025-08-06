@@ -18,4 +18,5 @@ distilbert-base-multilingual-cased/
 kcELECTRA-base-v2022/
 skt-kobert-base-v1/
 finetune-monologg/
-muli-columns-kykim-bert-kor
+muli-columns-kykim-bert-kor/
+muli-columns-BM-K
