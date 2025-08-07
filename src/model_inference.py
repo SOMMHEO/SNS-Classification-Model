@@ -12,7 +12,7 @@ import torch
 
 
 def tokenize_and_predict_batch(new_profile_data, new_media_data, category_labels):
-    new_profile = new_profile_data[['acnt_id', 'acnt_nm', 'acnt_sub_nm', 'intro_txt']]
+    new_profile = new_profile_data[['acnt_id', 'acnt_nm', 'acnt_conn_yn', 'acnt_sub_nm', 'intro_txt']]
     new_media = new_media_data[['acnt_id', 'media_cn']]
 
     new = pd.merge(new_profile, new_media, on='acnt_id')

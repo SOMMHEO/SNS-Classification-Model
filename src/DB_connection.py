@@ -1,6 +1,7 @@
 import pymysql
 from datetime import datetime, timedelta
 from sshtunnel import SSHTunnelForwarder
+import json
 
 class SSHMySQLConnector:
     def __init__(self):
@@ -68,13 +69,13 @@ class SSHMySQLConnector:
                     
                     if result:
                         data['member_uid'] = result['uid']
-                        data['user_id'] = result['user_id']
+                        # data['user_id'] = result['user_id']
                         data['is_connected'] = result['add1_connected']
                         # 향후에 ig_user_id가 추가가 된다면, 해당 부분도 확인해서 추가할 수 있게
                         # data['ig_user_id'] = result['ig_user_id']
                     else:
                         data['member_uid'] = 0
-                        data['user_id'] = 'None'
+                        # data['user_id'] = 'None'
                         data['is_connected'] = 'n'
                         # data['ig_user_id'] = 'None'
 

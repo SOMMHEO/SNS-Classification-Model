@@ -6,6 +6,15 @@ from io import BytesIO
 
 import pandas as pd
 import numpy as np
+import json
+
+from DB_connection import *
+from model_inference import *
+
+from paramiko import RSAKey
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 
 def main():
     # S3 Data Load
@@ -62,23 +71,29 @@ def main():
                     '사진/영상', '셀럽', '스포츠', '시사', '엔터테인먼트', '여행/관광', '유명장소/핫플', '일상', '자동차/모빌리티', '짤/밈', '취미', '패션', '푸드', '홈/리빙']
 
     merged_df, predict_df = tokenize_and_predict_batch(new_profile_data, new_media_data, category_labels)
-    merged_df = merged_df[['acnt_id', 'acnt_nm', 'acnt_conn_yn']].reset_index(drop=True)
+    merged_df = merged_df[['acnt_id', 'acnt_nm']].reset_index(drop=True)
     predict_df.reset_index(drop=True, inplace=True)
     
     final_predict_df = pd.concat([merged_df, predict_df], axis=1)
     final_predict_df.to_excel("real_category_matching.xlsx")
 
-    main_category = final_predict_df.groupby(['acnt_id', 'acnt_nm', 'acnt_conn_yn_x'])['single_label'].agg(lambda x: x.value_counts().idxmax()).to_frame().reset_index().rename(columns={'single_label' : 'main_category'})
+    main_category = final_predict_df.groupby(['acnt_id', 'acnt_nm'])['bert_top_label'].agg(lambda x: x.value_counts().idxmax()).to_frame().reset_index().rename(columns={'bert_top_label' : 'main_category'})
 
-    top_3_labels = final_predict_df.groupby(['acnt_id', 'acnt_nm', 'acnt_conn_yn_x'])['single_label'].value_counts().groupby(level=[0,1]).head(3).reset_index(name='count')
-    top_3_labels_joined = (top_3_labels.groupby(['acnt_id', 'acnt_nm', 'acnt_conn_yn_x'])['single_label'].apply(lambda x: '@'.join(x)).reset_index(name='top_3_category'))
+    top_3_labels = final_predict_df.groupby(['acnt_id', 'acnt_nm'])['bert_top_label'].value_counts().groupby(level=[0,1]).head(3).reset_index(name='count')
+    top_3_labels_joined = (top_3_labels.groupby(['acnt_id', 'acnt_nm'])['bert_top_label'].apply(lambda x: '@'.join(x)).reset_index(name='top_3_category'))
     
-    top_3_labels_joined = top_3_labels_joined.drop(columns=['acnt_id', 'acnt_nm', 'acnt_conn_yn_x'])
+    top_3_labels_joined = top_3_labels_joined.drop(columns=['acnt_id', 'acnt_nm'])
     final_df = pd.concat([main_category, top_3_labels_joined], axis=1)
-    final_df.rename(columns={'acnt_conn_yn_x' : 'is_conntected'})
 
     # DB Insert
+    data_list = final_df.to_dict(orient='records')
     
+    ssh = SSHMySQLConnector()
+    ssh.load_config_from_json('config/ssh_db_config.json') 
+    ssh.connect(True)
+    ssh.insert_query_with_lookup('INSTAGRAM_USER_CATEGORY_LABELING', data_list=data_list)
+
+    ssh.close()
 
 if __name__=='__main__':
     main()
