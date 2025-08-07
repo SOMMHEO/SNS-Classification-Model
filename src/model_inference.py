@@ -34,8 +34,7 @@ def tokenize_and_predict_batch(new_profile_data, new_media_data, category_labels
     new = new[new['acnt_sub_nm_cleaned'].ne('') & new['intro_txt_cleaned'].ne('') & new['media_cn_cleaned'].ne('')]
     
     # 실험용으로 잠시 head(300)
-    predict_df = new[['acnt_sub_nm_cleaned', 'intro_txt_cleaned', 'media_cn_cleaned']].head(300)
-    new_2 = new.head(300)
+    predict_df = new[['acnt_sub_nm_cleaned', 'intro_txt_cleaned', 'media_cn_cleaned']]
 
     # 학습된 BERT 모델 설정
     MODEL_NAME = "kykim/bert-kor-base" 
