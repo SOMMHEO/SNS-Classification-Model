@@ -9,7 +9,7 @@ import numpy as np
 import json
 
 from DB_connection import *
-from model_inference import *
+from Model_inference import *
 
 from paramiko import RSAKey
 import warnings
@@ -75,7 +75,7 @@ def main():
     predict_df.reset_index(drop=True, inplace=True)
     
     final_predict_df = pd.concat([merged_df, predict_df], axis=1)
-    final_predict_df.to_excel("real_category_matching.xlsx")
+    final_predict_df.to_csv("real_category_matching.csv")
 
     main_category = final_predict_df.groupby(['acnt_id', 'acnt_nm'])['bert_top_label'].agg(lambda x: x.value_counts().idxmax()).to_frame().reset_index().rename(columns={'bert_top_label' : 'main_category'})
 

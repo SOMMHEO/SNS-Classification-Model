@@ -33,7 +33,6 @@ def tokenize_and_predict_batch(new_profile_data, new_media_data, category_labels
     new['media_cn_cleaned'] = new['media_cn'].apply(clean_text)
     new = new[new['acnt_sub_nm_cleaned'].ne('') & new['intro_txt_cleaned'].ne('') & new['media_cn_cleaned'].ne('')]
     
-    # 실험용으로 잠시 head(300)
     predict_df = new[['acnt_sub_nm_cleaned', 'intro_txt_cleaned', 'media_cn_cleaned']]
 
     # 학습된 BERT 모델 설정
@@ -89,11 +88,12 @@ def tokenize_and_predict_batch(new_profile_data, new_media_data, category_labels
     predicted_class_indices = np.argmax(logits, axis=-1)
     
     # 결과 DataFrame에 추가
+    predict_df = predict_df.copy()
     predict_df['bert_probabilities'] = [probs.tolist() for probs in probabilities]
-    predict_df['bert_top_label_idx'] = np.argmax(probabilities, axis=-1)
-    predict_df['bert_top_label'] = [category_labels[idx] for idx in predict_df['bert_top_label_idx']]
-    predict_df['bert_top_prob'] = np.max(probabilities, axis=-1)
+    predict_df.loc[:, 'bert_top_label_idx'] = np.argmax(probabilities, axis=-1)
+    predict_df.loc[:, 'bert_top_label'] = [category_labels[idx] for idx in predict_df['bert_top_label_idx']]
+    predict_df.loc[:, 'bert_top_prob'] = np.max(probabilities, axis=-1)
     
-    return new_2, predict_df
+    return new, predict_df
 
 
