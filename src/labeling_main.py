@@ -15,6 +15,7 @@ from paramiko import RSAKey
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
+from datetime import datetime
 
 def main():
     # S3 Data Load
@@ -29,14 +30,14 @@ def main():
                     aws_secret_access_key=aws_secret_key,
                     region_name=region_name)
     
-    # today = datetime.now().strftime('%Y-%m-%d')
-    # year, week, _ = today.isocalendar()
+    today = datetime.now()
+    year, week, _ = today.isocalendar()
     
     # profile_data_prefix = f'instagram-data/tables/EXTERNAL_2_RECENT_USER_INFO_MTR/year={year}/week={week}'
     # media_data_prefix = f'instagram-data/tables/EXTERNAL_2_BY_USER_ID_MEDIA_DTL_INFO/year={year}/week={week}'
 
-    profile_data_prefix = f'instagram-data/tables/EXTERNAL_2_RECENT_USER_INFO_MTR/year=2025/week=30/'
-    media_data_prefix = f'instagram-data/tables/EXTERNAL_2_BY_USER_ID_MEDIA_DTL_INFO/year=2025/week=30/'
+    profile_data_prefix = f'instagram-data/tables/RECENT_USER_INFO_MTR/year={year}/week={week}/'
+    media_data_prefix = f'instagram-data/tables/BY_USER_ID_MEDIA_DTL_INFO/year={year}/week={week}/'
 
     # profile 파일 목록
     profile_response = s3.list_objects_v2(Bucket=bucket_name, Prefix=profile_data_prefix)
@@ -55,6 +56,7 @@ def main():
         profile_dfs.append(df)
 
     new_profile_data = pd.concat(profile_dfs, ignore_index=True)
+    print(new_profile_data.info())
 
     media_dfs = []
 
@@ -65,6 +67,7 @@ def main():
         media_dfs.append(df)
 
     new_media_data = pd.concat(media_dfs, ignore_index=True)
+    print(new_media_data.info())
 
     # category labeling
     category_labels = ['IT', '게임', '결혼/연애', '교육', '다이어트/건강보조식품', '만화/애니/툰', '문구/완구', '미술/디자인', '반려동물', '베이비/키즈', '뷰티', '브랜드공식계정',
@@ -74,12 +77,22 @@ def main():
     merged_df = merged_df[['acnt_id', 'acnt_nm']].reset_index(drop=True)
     predict_df.reset_index(drop=True, inplace=True)
     
+    # final data after category labeling
     final_predict_df = pd.concat([merged_df, predict_df], axis=1)
-    final_predict_df.to_csv("real_category_matching.csv")
+    final_predict_df.to_csv("flexmatch_influencer_category_matching.csv")  # 확인
+    
+    ## merge data with DB data - only flexmatch influencer
+    # preprocessing DB data
+    flexmatch_influencer_info = get_all_infos()
+    flexmatch_influencer_info['member_uid'] = flexmatch_influencer_info['member_uid'].fillna(0).astype(int)
+    flexmatch_influencer_info['add1'] = flexmatch_influencer_info['add1'].str.replace('https://www.instagram.com/', '')
+    flexmatch_influencer_info['acnt_nm'] = flexmatch_influencer_info['add1'].str.replace('/', '')
 
-    main_category = final_predict_df.groupby(['acnt_id', 'acnt_nm'])['bert_top_label'].agg(lambda x: x.value_counts().idxmax()).to_frame().reset_index().rename(columns={'bert_top_label' : 'main_category'})
+    db_merge_df = pd.merge(final_predict_df, flexmatch_influencer_info, on='acnt_nm', how='left')
 
-    top_3_labels = final_predict_df.groupby(['acnt_id', 'acnt_nm'])['bert_top_label'].value_counts().groupby(level=[0,1]).head(3).reset_index(name='count')
+    main_category = db_merge_df.groupby(['acnt_id', 'acnt_nm'])['bert_top_label'].agg(lambda x: x.value_counts().idxmax()).to_frame().reset_index().rename(columns={'bert_top_label' : 'main_category'})
+
+    top_3_labels = db_merge_df.groupby(['acnt_id', 'acnt_nm'])['bert_top_label'].value_counts().groupby(level=[0,1]).head(3).reset_index(name='count')
     top_3_labels_joined = (top_3_labels.groupby(['acnt_id', 'acnt_nm'])['bert_top_label'].apply(lambda x: '@'.join(x)).reset_index(name='top_3_category'))
     
     top_3_labels_joined = top_3_labels_joined.drop(columns=['acnt_id', 'acnt_nm'])
@@ -93,7 +106,7 @@ def main():
     ssh.connect(True)
     ssh.insert_query_with_lookup('INSTAGRAM_USER_CATEGORY_LABELING', data_list=data_list)
 
-    ssh.close()
+    # ssh.close()
 
 if __name__=='__main__':
     main()

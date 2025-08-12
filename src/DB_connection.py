@@ -2,6 +2,7 @@ import pymysql
 from datetime import datetime, timedelta
 from sshtunnel import SSHTunnelForwarder
 import json
+import pandas as pd
 
 class SSHMySQLConnector:
     def __init__(self):
@@ -55,6 +56,7 @@ class SSHMySQLConnector:
         # 쿼리 실행 후 데이터를 DataFrame으로 반환
         return pd.read_sql_query(query, self.connection)
 
+    # Data insert after category matching
     def insert_query_with_lookup(self, table_name, data_list):
         try:
             with self.connection.cursor() as cursor:
@@ -81,9 +83,15 @@ class SSHMySQLConnector:
 
                     # 2. INSERT 쿼리 구성 및 실행
                     columns = ', '.join(data.keys())
-                    placeholders = ', '.join([f"%({k})s" for k in data.keys()])
-                    insert_sql = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
-                    # print(insert_sql)
+                    placeholders = ', '.join([f"%({k})s" for k in data.keys()])                    
+                    # insert_sql = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
+                    # 수정 (해당 값이 이미 있으면 제외하고 insert)
+                    update_clause = ', '.join([f"{k} = VALUES({k})" for k in data.keys()])
+                    insert_sql = f"""
+                        INSERT INTO {table_name} ({columns}) 
+                        VALUES ({placeholders})
+                        ON DUPLICATE KEY UPDATE {update_clause}
+                    """
                     cursor.execute(insert_sql, data)
 
                     print(f"inserted acnt_id: {data.get('acnt_id', 'N/A')}")
@@ -109,3 +117,18 @@ def sendQuery(query):
         ssh.close()
 
         return results
+
+
+## DB data loading for merge data
+def get_all_infos(): 
+
+    query_flexmatch_member_info = """
+        select DISTINCT
+        o.user_id, s.member_uid, o.add1
+        from op_member o
+        left join op_mem_seller_statistics s on o.user_id=s.user_id
+        where o.add1 is not null and o.add1 != ''
+    """
+    flexmatch_influencer_info = sendQuery(query_flexmatch_member_info)
+
+    return flexmatch_influencer_info
