@@ -4,8 +4,8 @@ tests/data/recent_user_data.csv
 tests/data/1st_labelig_data.csv
 tests/data/2nd_labeling_data.csv
 tests/data/fine_tuning_data_original.csv
-/flexmatch_influencer_category_matching.csv
-/media_data_sample.parquet
+flexmatch_influencer_category_matching.csv
+media_data_sample.parquet
 
 new.xlsx
 new_2.xlsx
