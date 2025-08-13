@@ -33,14 +33,17 @@ def main():
     today = datetime.now()
     year, week, _ = today.isocalendar()
 
-    profile_data_prefix = f'instagram-data/tables/EXTERNAL_RECENT_USER_INFO_MTR/year={year}/week={week}'
-    media_data_prefix = f'instagram-data/tables/EXTERNAL_BY_USER_ID_MEDIA_DTL_INFO/year={year}/week={week}'
+    # profile_data_prefix = f'instagram-data/tables/EXTERNAL_RECENT_USER_INFO_MTR/year={year}/week={week}'
+    # media_data_prefix = f'instagram-data/tables/EXTERNAL_BY_USER_ID_MEDIA_DTL_INFO/year={year}/week={week}'
 
     # profile_data_prefix = f'instagram-data/tables/EXTERNAL_2_RECENT_USER_INFO_MTR/year={year}/week={week}'
     # media_data_prefix = f'instagram-data/tables/EXTERNAL_2_BY_USER_ID_MEDIA_DTL_INFO/year={year}/week={week}'
 
     # profile_data_prefix = f'instagram-data/tables/RECENT_USER_INFO_MTR/year={year}/week={week}/'
     # media_data_prefix = f'instagram-data/tables/BY_USER_ID_MEDIA_DTL_INFO/year={year}/week={week}/'
+
+    profile_data_prefix = f'instagram-data/tables/CONN_v2_RECENT_USER_INFO_MTR/2025-08-13/'
+    media_data_prefix = f'instagram-data/tables/CONN_v2_BY_USER_ID_MEDIA_DTL_INFO/2025-08-13/'
 
     # profile 파일 목록
     profile_response = s3.list_objects_v2(Bucket=bucket_name, Prefix=profile_data_prefix)
