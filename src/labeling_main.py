@@ -9,7 +9,7 @@ import numpy as np
 import json
 
 from DB_connection import *
-from Model_inference import *
+from model_inference import *
 
 from paramiko import RSAKey
 import warnings
@@ -19,7 +19,8 @@ from datetime import datetime
 
 def main():
     # S3 Data Load
-    load_dotenv()
+    load_dotenv("config/.env")
+
     aws_access_key = os.getenv("aws_accessKey")
     aws_secret_key = os.getenv("aws_secretKey")
     bucket_name = 'flexmatch-data'
@@ -29,6 +30,7 @@ def main():
                     aws_access_key_id=aws_access_key,
                     aws_secret_access_key=aws_secret_key,
                     region_name=region_name)
+
     
     today = datetime.now()
     year, week, _ = today.isocalendar()
@@ -65,17 +67,17 @@ def main():
     # new_media_data = pd.concat(media_dfs, ignore_index=True)
 
     profile_prefixes = [
-        # f'instagram-data/tables/EXTERNAL_RECENT_USER_INFO_MTR/year={year}/week=33',
-        # f'instagram-data/tables/EXTERNAL_2_RECENT_USER_INFO_MTR/year={year}/week=30',
-        # f'instagram-data/tables/RECENT_USER_INFO_MTR/year={year}/week={week}/'
-        f'instagram-data/tables/CONN_v2_RECENT_USER_INFO_MTR/2025-08-14/'
+        # f'instagram-data/tables/EXTERNAL_RECENT_USER_INFO_MTR/year={year}/week={week}',
+        # f'instagram-data/tables/EXTERNAL_2_RECENT_USER_INFO_MTR/year={year}/week={week}',
+        f'instagram-data/tables/RECENT_USER_INFO_MTR/year={year}/week={week}/'
+        # f'instagram-data/tables/CONN_v2_RECENT_USER_INFO_MTR/'
     ]
 
     media_prefixes = [
-        # f'instagram-data/tables/EXTERNAL_BY_USER_ID_MEDIA_DTL_INFO/year={year}/week=33',
-        # f'instagram-data/tables/EXTERNAL_2_BY_USER_ID_MEDIA_DTL_INFO/year={year}/week=30',
-        # f'instagram-data/tables/BY_USER_ID_MEDIA_DTL_INFO/year={year}/week={week}/'
-        f'instagram-data/tables/CONN_v2_BY_USER_ID_MEDIA_DTL_INFO/2025-08-14/'
+        # f'instagram-data/tables/EXTERNAL_BY_USER_ID_MEDIA_DTL_INFO/year={year}/week={week}',
+        # f'instagram-data/tables/EXTERNAL_2_BY_USER_ID_MEDIA_DTL_INFO/year={year}/week={week}',
+        f'instagram-data/tables/BY_USER_ID_MEDIA_DTL_INFO/year={year}/week={week}/'
+        # f'instagram-data/tables/CONN_v2_BY_USER_ID_MEDIA_DTL_INFO/2025-08-14/'
     ]
 
     # 모든 파일을 저장할 리스트
@@ -155,14 +157,14 @@ def main():
     print(final_df)
 
     # DB Insert
-    # data_list = final_df.to_dict(orient='records')
+    data_list = final_df.to_dict(orient='records')
     
-    # ssh = SSHMySQLConnector()
-    # ssh.load_config_from_json('config/ssh_db_config.json') 
-    # ssh.connect(True)
-    # ssh.insert_query_with_lookup('INSTAGRAM_USER_CATEGORY_LABELING', data_list=data_list)
+    ssh = SSHMySQLConnector()
+    ssh.load_config_from_json('config/ssh_db_config.json') 
+    ssh.connect(True)
+    ssh.insert_query_with_lookup('INSTAGRAM_USER_CATEGORY_LABELING', data_list=data_list)
 
-    # ssh.close()
+    ssh.close()
 
 if __name__=='__main__':
     main()
