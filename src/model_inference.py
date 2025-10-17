@@ -70,6 +70,15 @@ def tokenize_and_predict_batch(new_profile_data, new_media_data, category_labels
     predict_dataset = predict_dataset.remove_columns(columns_to_remove)
     predict_dataset.set_format(type="torch", columns=['input_ids', 'attention_mask']) # 모델에 따라서 해당 부분 변경
     
+    # python 환경에서도 gpu 사용할 수 있게 설정
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+        print(f"✅ Using GPU: {torch.cuda.get_device_name(0)}")
+    else:
+        device = torch.device("cpu")
+        print("⚠️ Using CPU only")
+    
+    
     # 예측용 TrainingArguments 및 Trainer 설정
     prediction_args = TrainingArguments(
         output_dir="./prediction_output",
@@ -78,8 +87,9 @@ def tokenize_and_predict_batch(new_profile_data, new_media_data, category_labels
         do_predict=True,
         report_to="none",
         disable_tqdm=False,
+        fp16=torch.cuda.is_available(),
     )
-    trainer = Trainer(model=bert_model, args=prediction_args)
+    trainer = Trainer(model=bert_model.to(device), args=prediction_args)
 
     # 예측 수행
     predictions_output = trainer.predict(predict_dataset)
