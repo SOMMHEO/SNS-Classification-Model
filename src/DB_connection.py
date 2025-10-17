@@ -94,7 +94,12 @@ class SSHMySQLConnector:
                     """
                     cursor.execute(insert_sql, data)
 
-                    print(f"inserted acnt_id: {data.get('acnt_id', 'N/A')}")
+                    if cursor.rowcount == 1:
+                        print(f"✅ inserted new: {data.get('acnt_id', 'N/A')}")
+                    else:
+                        print(f"🔁 updated existing: {data.get('acnt_id', 'N/A')}")
+
+                    # print(f"inserted acnt_id: {data.get('acnt_id', 'N/A')}")
 
             self.connection.commit()
         except Exception as e:
@@ -109,7 +114,7 @@ class SSHMySQLConnector:
 
 def sendQuery(query):
         ssh = SSHMySQLConnector()
-        ssh.load_config_from_json('config/ssh_db_config.json')
+        ssh.load_config_from_json('C:/Users/flexmatch/Desktop/ssom/code/3.SNS-categorizer/config/ssh_db_config.json')
         ssh.connect()
         results = ssh.execute_query(query)
         # print(results)
@@ -131,4 +136,18 @@ def get_all_infos():
     """
     flexmatch_influencer_info = sendQuery(query_flexmatch_member_info)
 
-    return flexmatch_influencer_info
+    query_s3_conn_user_info_mtr = """
+        select acnt_id, acnt_nm, web_addr, acnt_sub_nm, intro_txt, profile_photo_url_addr, acnt_conn_yn, category_nm, follower_cnt, follow_cnt, media_cnt
+        from S3_CONN_v2_RECENT_USER_INFO_MTR
+    """
+    conn_user_info_mtr = sendQuery(query_s3_conn_user_info_mtr)
+
+    query_s3_conn_user_media_info_mtr = """
+        select acnt_id, media_id, media_type_nm, reels_feed_type_nm, media_url_addr, media_unq_url_addr, tmnl_url_addr, reg_dt, media_cn, acnt_conn_yn, feed_share_yn, cmnt_actvtn_yn
+        from S3_CONN_v2_BY_USER_ID_MEDIA_DTL_INFO
+    """
+    conn_user_media_info = sendQuery(query_s3_conn_user_media_info_mtr)
+    
+    return flexmatch_influencer_info, conn_user_info_mtr, conn_user_media_info
+
+

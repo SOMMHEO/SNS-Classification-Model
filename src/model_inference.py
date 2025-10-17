@@ -37,7 +37,7 @@ def tokenize_and_predict_batch(new_profile_data, new_media_data, category_labels
 
     # 학습된 BERT 모델 설정
     MODEL_NAME = "kykim/bert-kor-base" 
-    FINETUNED_BERT_MODEL_PATH = "muli-columns-kykim-bert-kor" 
+    FINETUNED_BERT_MODEL_PATH = "C:/Users/flexmatch/Desktop/ssom/code/3.SNS-categorizer/muli-columns-kykim-bert-kor" 
 
     # BERT 모델 및 토크나이저 로드 
     bert_tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)

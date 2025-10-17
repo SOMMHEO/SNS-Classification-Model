@@ -110,21 +110,31 @@ def main():
     get_s3_files(media_prefixes, all_media_dfs)
 
     if all_profile_dfs:
-        new_profile_data = pd.concat(all_profile_dfs, ignore_index=True)
-        print("\nFinal Combined Profile Data Info:")
-        print(new_profile_data.info())
+        not_conn_user_info_mtr = pd.concat(all_profile_dfs, ignore_index=True)
+        print("/nFinal Combined Profile Data Info:")
+        print(not_conn_user_info_mtr.info())
     else:
-        new_profile_data = pd.DataFrame() # 빈 데이터프레임 생성
-        print("\nNo profile data found.")
+        not_conn_user_info_mtr = pd.DataFrame() # 빈 데이터프레임 생성
+        print("/nNo profile data found.")
 
     if all_media_dfs:
-        new_media_data = pd.concat(all_media_dfs, ignore_index=True)
-        print("\nFinal Combined Media Data Info:")
-        print(new_media_data.info())
+        not_conn_user_media_info = pd.concat(all_media_dfs, ignore_index=True)
+        print("/nFinal Combined Media Data Info:")
+        print(not_conn_user_media_info.info())
     else:
-        new_media_data = pd.DataFrame() # 빈 데이터프레임 생성
-        print("\nNo media data found.")
+        not_conn_user_media_info = pd.DataFrame() # 빈 데이터프레임 생성
+        print("/nNo media data found.")
 
+    ## merge data with DB data - only flexmatch influencer
+    # preprocessing DB data
+    flexmatch_influencer_info, conn_user_info_mtr, conn_user_media_info = get_all_infos()
+    flexmatch_influencer_info['member_uid'] = flexmatch_influencer_info['member_uid'].fillna(0).astype(int)
+    flexmatch_influencer_info['add1'] = flexmatch_influencer_info['add1'].str.replace('https://www.instagram.com/', '')
+    flexmatch_influencer_info['acnt_nm'] = flexmatch_influencer_info['add1'].str.replace('/', '')
+
+    # merge not_conn_user and conn_user
+    new_profile_data = pd.concat([not_conn_user_info_mtr, conn_user_info_mtr], axis=0)
+    new_media_data = pd.concat([not_conn_user_media_info, conn_user_media_info], axis=0)
 
     # category labeling
     category_labels = ['IT', '게임', '결혼/연애', '교육', '다이어트/건강보조식품', '만화/애니/툰', '문구/완구', '미술/디자인', '반려동물', '베이비/키즈', '뷰티', '브랜드공식계정',
@@ -137,13 +147,7 @@ def main():
     # final data after category labeling
     final_predict_df = pd.concat([merged_df, predict_df], axis=1)
     # final_predict_df.to_csv("flexmatch_influencer_category_matching.csv")  # 확인
-    
-    ## merge data with DB data - only flexmatch influencer
-    # preprocessing DB data
-    flexmatch_influencer_info = get_all_infos()
-    flexmatch_influencer_info['member_uid'] = flexmatch_influencer_info['member_uid'].fillna(0).astype(int)
-    flexmatch_influencer_info['add1'] = flexmatch_influencer_info['add1'].str.replace('https://www.instagram.com/', '')
-    flexmatch_influencer_info['acnt_nm'] = flexmatch_influencer_info['add1'].str.replace('/', '')
+
 
     db_merge_df = pd.merge(final_predict_df, flexmatch_influencer_info, on='acnt_nm', how='left')
 
@@ -160,7 +164,7 @@ def main():
     data_list = final_df.to_dict(orient='records')
     
     ssh = SSHMySQLConnector()
-    ssh.load_config_from_json('config/ssh_db_config.json') 
+    ssh.load_config_from_json('C:/Users/flexmatch/Desktop/ssom/code/3.SNS-categorizer/config/ssh_db_config.json') 
     ssh.connect(True)
     ssh.insert_query_with_lookup('INSTAGRAM_USER_CATEGORY_LABELING', data_list=data_list)
 
