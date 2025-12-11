@@ -140,15 +140,15 @@ def main():
     category_labels = ['IT', '게임', '결혼/연애', '교육', '다이어트/건강보조식품', '만화/애니/툰', '문구/완구', '미술/디자인', '반려동물', '베이비/키즈', '뷰티', '브랜드공식계정',
                     '사진/영상', '셀럽', '스포츠', '시사', '엔터테인먼트', '여행/관광', '유명장소/핫플', '일상', '자동차/모빌리티', '짤/밈', '취미', '패션', '푸드', '홈/리빙']
 
-    merged_df, predict_df = tokenize_and_predict_batch(new_profile_data, new_media_data, category_labels)
-    merged_df = merged_df[['acnt_id', 'acnt_nm']].reset_index(drop=True)
-    predict_df.reset_index(drop=True, inplace=True)
+    merged_df, new_merged_df, predict_df = tokenize_and_predict_batch(new_profile_data, new_media_data, category_labels)
+    new_merged_df = merged_df[['acnt_id', 'acnt_nm']].reset_index(drop=True)
+    predict_df.new_merged_df(drop=True, inplace=True)
     
     # final data after category labeling
-    final_predict_df = pd.concat([merged_df, predict_df], axis=1)
+    final_predict_df = pd.concat([new_merged_df, predict_df], axis=1)
     # final_predict_df.to_csv("flexmatch_influencer_category_matching.csv")  # 확인
 
-
+    ## 알고리즘으로 카테고리 라벨링된 사람들
     db_merge_df = pd.merge(final_predict_df, flexmatch_influencer_info, on='acnt_nm', how='left')
 
     main_category = db_merge_df.groupby(['acnt_id', 'acnt_nm'])['bert_top_label'].agg(lambda x: x.value_counts().idxmax()).to_frame().reset_index().rename(columns={'bert_top_label' : 'main_category'})
@@ -158,7 +158,18 @@ def main():
     
     top_3_labels_joined = top_3_labels_joined.drop(columns=['acnt_id', 'acnt_nm'])
     final_df = pd.concat([main_category, top_3_labels_joined], axis=1)
-    print(final_df)
+
+    ## 알고리즘으로 카테고리 라벨링 안된 사람들(게시물 자체가 없는 사람과 게시물이 있어도 글이 없어서 라벨링 안된 사람들)
+    final_df_list = final_df['acnt_id'].drop_duplicates().to_list()
+    no_category_user_df = merged_df[~merged_df['acnt_id'].isin(final_df_list)].drop_duplicates("acnt_id")[['acnt_id', 'acnt_nm']].reset_index(drop=True)
+
+    # 여기서 게시물 자체가 없는 사람들은 제외하고 태깅
+    has_media_user_list = new_media_data['acnt_id'].unique()
+    no_post_user_list = merged_df[~merged_df['acnt_id'].isin(has_media_user_list)]['acnt_id'].to_list()
+    final_no_category_user_df = no_category_user_df[~no_category_user_df['acnt_id'].isin(no_post_user_list)]
+
+    final_no_category_user_df['main_category'] = '일상'
+    final_no_category_user_df['top_3_category'] = None
 
     # DB Insert
     data_list = final_df.to_dict(orient='records')

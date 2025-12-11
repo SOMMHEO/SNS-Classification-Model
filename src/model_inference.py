@@ -15,7 +15,8 @@ def tokenize_and_predict_batch(new_profile_data, new_media_data, category_labels
     new_profile = new_profile_data[['acnt_id', 'acnt_nm', 'acnt_conn_yn', 'acnt_sub_nm', 'intro_txt']]
     new_media = new_media_data[['acnt_id', 'media_cn']]
 
-    new = pd.merge(new_profile, new_media, on='acnt_id')
+    new = pd.merge(new_profile, new_media, on='acnt_id') # 수정
+    merge_new = pd.merge(new_profile, new_media, on='acnt_id', how='outer')
 
     def clean_text(text):
         if not isinstance(text, str):
@@ -104,6 +105,6 @@ def tokenize_and_predict_batch(new_profile_data, new_media_data, category_labels
     predict_df.loc[:, 'bert_top_label'] = [category_labels[idx] for idx in predict_df['bert_top_label_idx']]
     predict_df.loc[:, 'bert_top_prob'] = np.max(probabilities, axis=-1)
     
-    return new, predict_df
+    return merge_new, new, predict_df
 
 

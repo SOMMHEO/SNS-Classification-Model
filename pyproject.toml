@@ -35,7 +35,8 @@ dependencies = [
     "langchain-ollama (>=0.3.6,<0.4.0)",
     "accelerate (>=0.26.0)",
     "torch @ https://download.pytorch.org/whl/cu121/torch-2.5.1%2Bcu121-cp311-cp311-win_amd64.whl",
-    "transformers (>=4.53.3,<5.0.0)"
+    "transformers (>=4.53.3,<5.0.0)",
+    "paramiko (<3.4)"
 ]
 
 
