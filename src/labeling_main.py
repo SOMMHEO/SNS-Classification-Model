@@ -141,7 +141,7 @@ def main():
                     '사진/영상', '셀럽', '스포츠', '시사', '엔터테인먼트', '여행/관광', '유명장소/핫플', '일상', '자동차/모빌리티', '짤/밈', '취미', '패션', '푸드', '홈/리빙']
 
     merged_df, new_merged_df, predict_df = tokenize_and_predict_batch(new_profile_data, new_media_data, category_labels)
-    new_merged_df = merged_df[['acnt_id', 'acnt_nm']].reset_index(drop=True)
+    new_merged_df = new_merged_df[['acnt_id', 'acnt_nm']].reset_index(drop=True)
     predict_df.new_merged_df(drop=True, inplace=True)
     
     # final data after category labeling
