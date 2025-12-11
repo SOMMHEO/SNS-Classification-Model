@@ -140,9 +140,10 @@ def main():
     category_labels = ['IT', '게임', '결혼/연애', '교육', '다이어트/건강보조식품', '만화/애니/툰', '문구/완구', '미술/디자인', '반려동물', '베이비/키즈', '뷰티', '브랜드공식계정',
                     '사진/영상', '셀럽', '스포츠', '시사', '엔터테인먼트', '여행/관광', '유명장소/핫플', '일상', '자동차/모빌리티', '짤/밈', '취미', '패션', '푸드', '홈/리빙']
 
+    print("start")
     merged_df, new_merged_df, predict_df = tokenize_and_predict_batch(new_profile_data, new_media_data, category_labels)
     new_merged_df = new_merged_df[['acnt_id', 'acnt_nm']].reset_index(drop=True)
-    predict_df.new_merged_df(drop=True, inplace=True)
+    predict_df.reset_index(drop=True, inplace=True)
     
     # final data after category labeling
     final_predict_df = pd.concat([new_merged_df, predict_df], axis=1)
@@ -171,8 +172,11 @@ def main():
     final_no_category_user_df['main_category'] = '일상'
     final_no_category_user_df['top_3_category'] = None
 
+    all_final_df = pd.concat([final_df, final_no_category_user_df], axis=0)
+    all_final_df.drop_duplicates(['acnt_id'], inplace=True)
+
     # DB Insert
-    data_list = final_df.to_dict(orient='records')
+    data_list = all_final_df.to_dict(orient='records')
     
     ssh = SSHMySQLConnector()
     ssh.load_config_from_json('C:/Users/flexmatch/Desktop/ssom/code/3.SNS-categorizer/config/ssh_db_config.json') 
